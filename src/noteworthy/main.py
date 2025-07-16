@@ -1,4 +1,4 @@
-# noteworthy/main.py
+ # noteworthy/main.py
 
 import argparse
 
@@ -24,6 +24,7 @@ def parse_args():
     parser.add_argument("--shoutout", action="store_true", help="Include contributor shoutouts")
     parser.add_argument("--from-tag", help="Start tag for changelog")
     parser.add_argument("--to-tag", help="End tag for changelog (default: HEAD)")
+    parser.add_argument("--style-sample", help="Path to a file containing a sample release note to guide the style")
 
     return parser.parse_args()
 
@@ -46,7 +47,8 @@ def main():
         exclude_patterns=args.exclude.split(",") if args.exclude else None,
         from_tag=args.from_tag,
         to_tag=args.to_tag,
-        shoutout=args.shoutout
+        shoutout=args.shoutout,
+        style_sample=args.style_sample
     )
 
     notes = format_release_notes(notes, args.output_format)

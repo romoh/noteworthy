@@ -1,27 +1,33 @@
 # noteworthy/notes_processor.py
 
 import os
-from typing import List, TypedDict
+from typing import List, Optional, TypedDict
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from langgraph.graph import StateGraph, END
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
+
 
 class ReleaseNotesState(TypedDict):
     commits: List[str]
     release_notes: str
 
-def get_prompt():
+def get_prompt(style_sample: Optional[str] = None):
     system_prompt = """You are a release notes generator. Given a list of commit messages and the number of files changed for each, group them into sections such as Features, Bug Fixes, etc.
 At the top, start with the features sorted by the most impactful changes.
 Correlate related changes, especially small implementation details and fixes, into meaningful groups rather than listing them separately.
-Output in a concise, non-verbose style, using clear section headers. Avoid repeating information and keep lists short and to the point.
+Output in a concise, non-verbose style, using clear section headers. Avoid repeating information, remove title prefix and keep lists short and to the point.
 Output in Markdown format."""
 
-    return ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-        ("human", "Commits:\n{commits}")
-    ])
+    messages = [("system", system_prompt)]
+
+    if style_sample:
+        messages.append(("human", f"Here is a sample release note for stylistic guidance:\n\n{style_sample}"))
+
+    messages.append(("human", "Commits:\n{commits}"))
+
+    return ChatPromptTemplate.from_messages(messages)
+
 
 def make_summarize_node(llm, prompt):
     def summarize_node(state):
@@ -31,7 +37,7 @@ def make_summarize_node(llm, prompt):
         return {"release_notes": response.content}
     return summarize_node
 
-def process_release_notes(commits: List[str]) -> str:
+def process_release_notes(commits: List[str], style_text: Optional[str] = None) -> str:
     deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT", "test")
     azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "https://aiopsvteam.openai.azure.com/")
     openai_api_version = os.getenv("OPENAI_API_VERSION", "2024-02-15-preview")

@@ -17,6 +17,7 @@ def generate_release_notes(
     shoutout: bool = False,
     from_tag: Optional[str] = None,
     to_tag: Optional[str] = None,
+    style_sample: Optional[str] = None,
 ) -> str:
     print(f"🔗 Validating and cloning: {repo_url}")
     validate_repo(repo_url)
@@ -42,11 +43,20 @@ def generate_release_notes(
         msg = c["message"].strip().split("\n")[0]
         if exclude_patterns and any(p in msg for p in exclude_patterns):
             continue
-        commit_lines.append(f"- {msg} ({c['author']})")
+        file_list = ", ".join(c["file_names"])
+        commit_lines.append("- {msg} (files changed: {c['files_changed']}, files: [{file_list}], author: {c['author']})")
+
+    style_text = None
+    if style_sample:
+        try:
+            with open(style_sample, "r") as f:
+                style_text = f.read()
+        except Exception as e:
+            print(f"⚠️ Could not read style sample: {e}")
 
 
     # Use AI to generate release notes from commit lines
-    ai_notes = process_release_notes(commit_lines)
+    ai_notes = process_release_notes(commit_lines, style_text)
 
     # Contributor shoutouts
     shoutout_section = ""

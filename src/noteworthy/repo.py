@@ -2,6 +2,7 @@
 
 import os
 import re
+import shutil
 import subprocess
 import git
 
@@ -24,18 +25,16 @@ def validate_repo(repo_url):
 
     return True
 
-import os
-import shutil
-import subprocess
-
-def clone_after_tag(repo_url, tag_name, clone_path="repo"):
+def clone_after_tag(repo_url: str, from_tag: str = None) -> str:
     tmp_path = "repo-tmp"
+    clone_path = "repo"
+
     if os.path.exists(tmp_path):
         shutil.rmtree(tmp_path)
 
     # Shallow clone to retrieve the tag date
     subprocess.run([
-        "git", "clone", "--depth", "1", "--branch", tag_name, repo_url, tmp_path
+        "git", "clone", "--depth", "1", "--branch", from_tag, repo_url, tmp_path
     ], check=True)
 
     result = subprocess.run(
@@ -49,9 +48,12 @@ def clone_after_tag(repo_url, tag_name, clone_path="repo"):
     # Now clone from the tag onwards only
     if os.path.exists(clone_path):
         print(f"Directory {clone_path} already exists. Skipping clone.")
+        # Still fetch tags even if directory exists
+        repo = git.Repo(clone_path)
+        repo.git.fetch('--tags')
         return clone_path
 
-    print(f"Cloning {repo_url} since tag '{tag_name}' (date: {tag_date}) into {clone_path}")
+    print(f"Cloning {repo_url} since tag '{from_tag}' (date: {tag_date}) into {clone_path}")
 
     subprocess.run([
         "git", "clone", f"--shallow-since={tag_date}", "--single-branch", repo_url, clone_path
@@ -59,6 +61,10 @@ def clone_after_tag(repo_url, tag_name, clone_path="repo"):
 
     if not os.path.exists(os.path.join(clone_path, ".git")):
         raise RuntimeError(f"Failed to clone repository from {repo_url} to {clone_path}")
+
+    # After cloning, fetch tags so they're available for git operations
+    repo = git.Repo(clone_path)
+    repo.git.fetch('--tags')
 
     return clone_path
 
@@ -93,13 +99,16 @@ def get_commits_with_file_counts(repo_path, since="HEAD~10"):
     repo = git.Repo(repo_path)
     commits = list(repo.iter_commits(since))
     commit_data = []
+
     for c in commits:
-        files_changed = c.stats.files
+        files_changed = list(c.stats.files.keys())
         commit_data.append({
             "message": c.message.strip().split("\n")[0],
             "author": c.author.name,
-            "files_changed": len(files_changed)
+            "files_changed": len(files_changed),
+            "file_names": files_changed  # ← Add this
         })
+
     return commit_data
 
 def get_top_contributors(repo_path, n=3):

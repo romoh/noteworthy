@@ -16,3 +16,4 @@
 * add a config file to specify defaults
 * add a plugin to generate release notes from issues
 * add a plugin to generate release notes from PRs
+* accept metadata as input
