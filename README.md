@@ -2,7 +2,9 @@
 
 📝 AI-powered, customizable release notes for git repos. Because every commit deserves to be Noteworthy.
 
- ![Project Logo](assets/logo.png)
+<div align="center">
+  <img src="assets/logo.png" width="200" alt="Project Logo">
+</div>
 
 ## Getting Started
 
