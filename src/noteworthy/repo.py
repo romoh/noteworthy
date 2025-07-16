@@ -89,6 +89,19 @@ def get_commits(repo_path, since="HEAD~10"):
     commits = list(repo.iter_commits(since))
     return commits
 
+def get_commits_with_file_counts(repo_path, since="HEAD~10"):
+    repo = git.Repo(repo_path)
+    commits = list(repo.iter_commits(since))
+    commit_data = []
+    for c in commits:
+        files_changed = c.stats.files
+        commit_data.append({
+            "message": c.message.strip().split("\n")[0],
+            "author": c.author.name,
+            "files_changed": len(files_changed)
+        })
+    return commit_data
+
 def get_top_contributors(repo_path, n=3):
     repo = git.Repo(repo_path)
     authors = [commit.author.name for commit in repo.iter_commits()]

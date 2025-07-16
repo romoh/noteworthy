@@ -15,8 +15,8 @@ def test_generate_release_notes(cleanup_repo):
     notes = generate_release_notes(
         repo_url=repo_url,
         shoutout=True,
-        highlight_section=False,
         output_format="markdown",
+        output_file="release_notes.md",
         exclude_patterns=["chore:", "docs:"]
     )
     assert notes is not None

@@ -2,6 +2,8 @@
 
 📝 AI-powered, customizable release notes for git repos. Because every commit deserves to be Noteworthy.
 
+ ![Project Logo](assets/logo.png)
+
 ## Getting Started
 
 ```bash
@@ -17,7 +19,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Run the tool
-python -m noteworthy.main --repo-url https://github.com/owner/repo
+PYTHONPATH=src python -m noteworthy.main --shoutout --highlights --output-format markdown --output-file release_notes.md --repo-url https://github.com/owner/repo
 
 # Run tests
  PYTHONPATH=src pytest tests/test.py -s

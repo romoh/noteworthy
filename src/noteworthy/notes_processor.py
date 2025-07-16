@@ -12,8 +12,14 @@ class ReleaseNotesState(TypedDict):
     release_notes: str
 
 def get_prompt():
+    system_prompt = """You are a release notes generator. Given a list of commit messages and the number of files changed for each, group them into sections such as Features, Bug Fixes, etc.
+At the top, start with the features sorted by the most impactful changes.
+Correlate related changes, especially small implementation details and fixes, into meaningful groups rather than listing them separately.
+Output in a concise, non-verbose style, using clear section headers. Avoid repeating information and keep lists short and to the point.
+Output in Markdown format."""
+
     return ChatPromptTemplate.from_messages([
-        ("system", "You are a release notes generator. Given a list of commit messages, group them into sections such as Features, Bug Fixes, Refactoring, Documentation, etc. Summarize each section in a human-readable way. Output in Markdown format with clear section headers."),
+        ("system", system_prompt),
         ("human", "Commits:\n{commits}")
     ])
 

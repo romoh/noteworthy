@@ -5,21 +5,18 @@ from typing import Optional, List
 from noteworthy.repo import (
     clone_after_tag,
     validate_repo,
-    get_commits, get_top_contributors, get_latest_tag
+    get_commits, get_top_contributors, get_latest_tag, get_commits_with_file_counts
 )
 from noteworthy.notes_processor import process_release_notes
 
 def generate_release_notes(
     repo_url: str,
-    token: Optional[str] = None,
     output_format: str = "markdown",
     output_file: Optional[str] = None,
     exclude_patterns: Optional[List[str]] = None,
-    highlight_section: bool = False,
     shoutout: bool = False,
     from_tag: Optional[str] = None,
     to_tag: Optional[str] = None,
-    highlights: Optional[List[str]] = None
 ) -> str:
     print(f"🔗 Validating and cloning: {repo_url}")
     validate_repo(repo_url)
@@ -36,21 +33,17 @@ def generate_release_notes(
     repo_path = clone_after_tag(repo_url, from_tag)
 
     rev_range = f"{from_tag}..{to_tag}" if from_tag else to_tag
-    commits = get_commits(repo_path, rev_range)
+    commits = get_commits_with_file_counts(repo_path, rev_range)
 
     print(f"📝 Found {len(commits)} commits")
 
     commit_lines = []
     for c in commits:
-        msg = c.message.strip().split("\n")[0]
+        msg = c["message"].strip().split("\n")[0]
         if exclude_patterns and any(p in msg for p in exclude_patterns):
             continue
-        commit_lines.append(f"- {msg} ({c.author.name})")
+        commit_lines.append(f"- {msg} ({c['author']})")
 
-    # Highlights section
-    highlights_section = ""
-    if highlight_section and highlights:
-        highlights_section = "\n\n**Highlights:**\n" + "\n".join([f"- {h}" for h in highlights])
 
     # Use AI to generate release notes from commit lines
     ai_notes = process_release_notes(commit_lines)
@@ -62,7 +55,7 @@ def generate_release_notes(
         names = [f"@{name}" for name, _ in contributors]
         shoutout_section = "\n\n🙌 **Thanks to our top contributors:** " + ", ".join(names)
 
-    output = f"{ai_notes}{highlights_section}{shoutout_section}\n"
+    output = f"{ai_notes}{shoutout_section}\n"
     print(output)
 
     return output
