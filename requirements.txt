@@ -1,0 +1,7 @@
+azure-identity
+langgraph
+langchain
+langchain_openai
+gitpython
+pyyaml
+pytest #TODO: separate out a test requirements.txt
