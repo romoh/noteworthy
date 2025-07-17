@@ -1,5 +1,7 @@
 # noteworthy/notes_generator.py
 
+import shutil
+import os
 from typing import Optional, List
 
 from noteworthy.repo import (
@@ -39,18 +41,14 @@ def generate_release_notes(
     print(f"📝 Found {len(commits)} commits")
 
     commit_lines = []
-    for i, c in enumerate(commits):
-        msg = c["message"].strip().split("\n")[0]
+    for c in commits:
+        msg = c["message"].strip()
         if exclude_patterns and any(p in msg for p in exclude_patterns):
             continue
         file_list = ", ".join(c["file_names"])
         commit_hash = c["hash"]
-        if i < 5:
-            # Add hyperlink for the first 5 (major) commits
-            link = f"[{commit_hash[:8]}]({repo_url}/commit/{commit_hash})"
-            commit_lines.append(f"- {msg} {link} (files changed: {c['files_changed']}, files: [{file_list}], author: {c['author']})")
-        else:
-            commit_lines.append(f"- {msg} (files changed: {c['files_changed']}, files: [{file_list}], author: {c['author']})")
+        link = f"[{commit_hash[:8]}]({repo_url}/commit/{commit_hash})"
+        commit_lines.append(f"- {msg} (files changed: {c['files_changed']}, files: [{file_list}], author: {c['author']})")
 
     style_text = None
     if style_sample:
@@ -67,11 +65,19 @@ def generate_release_notes(
     # Contributor shoutouts
     shoutout_section = ""
     if shoutout:
-        contributors = get_top_contributors(repo_path)
+        contributors = get_top_contributors(repo_path, rev_range)
         names = [f"@{name}" for name, _ in contributors]
         shoutout_section = "\n\n🙌 **Thanks to our top contributors:** " + ", ".join(names)
 
     output = f"{ai_notes}{shoutout_section}\n"
     print(output)
+
+    # Clean up the repo directory after generating notes
+    repo_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'repo')
+    try:
+        if os.path.exists(repo_dir):
+            shutil.rmtree(repo_dir)
+    except Exception as e:
+        print(f"⚠️ Could not clean up repo directory: {e}")
 
     return output

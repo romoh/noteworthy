@@ -128,8 +128,27 @@ def get_commits_with_file_counts(repo_path, since="HEAD~10"):
 
     return commit_data
 
-def get_top_contributors(repo_path, n=3):
+def get_top_contributors(repo_path, rev_range=None, n=3):
+    """
+    Return the top n contributors in the given revision range (e.g., 'tag1..tag2').
+    If rev_range is None, use all commits.
+    """
+    import git
     repo = git.Repo(repo_path)
-    authors = [commit.author.name for commit in repo.iter_commits()]
+    if rev_range:
+        # Use git log to get commit hashes in the range
+        if ".." in rev_range:
+            parts = rev_range.split("..")
+            if len(parts) == 2:
+                from_tag, to_tag = parts
+                hashes = repo.git.log(f"{from_tag}..{to_tag}", pretty='%H').splitlines()
+            else:
+                hashes = []
+        else:
+            hashes = repo.git.log(rev_range, pretty='%H').splitlines()
+        commits = [repo.commit(h) for h in hashes if h.strip()]
+    else:
+        commits = list(repo.iter_commits())
+    authors = [commit.author.name for commit in commits]
     from collections import Counter
     return Counter(authors).most_common(n)

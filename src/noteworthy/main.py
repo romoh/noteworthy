@@ -1,4 +1,5 @@
- # noteworthy/main.py
+#!/usr/bin/env python3
+# noteworthy/main.py
 
 import argparse
 
@@ -21,7 +22,7 @@ def parse_args():
     parser.add_argument("--output-format", choices=["markdown", "html", "txt"], default="markdown", help="Output format (default: markdown)")
     parser.add_argument("--output-file", help="Output file path (default: stdout)")
     parser.add_argument("--exclude", help="Comma-separated list of exclude patterns (e.g., 'docs/*,chore:*')")
-    parser.add_argument("--shoutout", action="store_true", help="Include contributor shoutouts")
+    parser.add_argument("--shoutout", dest="shoutout", action="store_true", help="Include contributor shoutouts (default: true)")
     parser.add_argument("--from-tag", help="Start tag for changelog")
     parser.add_argument("--to-tag", help="End tag for changelog (default: HEAD)")
     parser.add_argument("--style-sample", help="Path to a file containing a sample release note to guide the style")
