@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import git
+from typing import Optional
 
 def validate_repo(repo_url):
     if not repo_url.startswith("https://github.com/"):
@@ -25,7 +26,7 @@ def validate_repo(repo_url):
 
     return True
 
-def clone_after_tag(repo_url: str, from_tag: str = None) -> str:
+def clone_after_tag(repo_url: str, from_tag: Optional[str] = None) -> str:
     tmp_path = "repo-tmp"
     clone_path = "repo"
 
@@ -55,8 +56,10 @@ def clone_after_tag(repo_url: str, from_tag: str = None) -> str:
 
     print(f"Cloning {repo_url} since tag '{from_tag}' (date: {tag_date}) into {clone_path}")
 
+    # Clone with more depth to ensure we get all commits in the range
+    # TODO: consider dynamically setting the depth based on the number of commits in the range or using sth like "git", "clone", f"--shallow-since={tag_date}", "--single-branch", repo_url, clone_path
     subprocess.run([
-        "git", "clone", f"--shallow-since={tag_date}", "--single-branch", repo_url, clone_path
+        "git", "clone", "--depth", "1000", "--single-branch", repo_url, clone_path
     ], check=True)
 
     if not os.path.exists(os.path.join(clone_path, ".git")):
@@ -97,7 +100,20 @@ def get_commits(repo_path, since="HEAD~10"):
 
 def get_commits_with_file_counts(repo_path, since="HEAD~10"):
     repo = git.Repo(repo_path)
-    commits = list(repo.iter_commits(since))
+
+    # Handle revision ranges like "tag1..tag2"
+    if ".." in since:
+        from_tag, to_tag = since.split("..")
+        # Use git log command directly for revision ranges
+        result = subprocess.run(
+            ["git", "-C", repo_path, "log", "--pretty=format:%H", f"{from_tag}..{to_tag}"],
+            capture_output=True, text=True, check=True
+        )
+        commit_hashes = result.stdout.strip().splitlines()
+        commits = [repo.commit(hash.strip()) for hash in commit_hashes if hash.strip()]
+    else:
+        commits = list(repo.iter_commits(since))
+
     commit_data = []
 
     for c in commits:
@@ -106,7 +122,8 @@ def get_commits_with_file_counts(repo_path, since="HEAD~10"):
             "message": c.message.strip().split("\n")[0],
             "author": c.author.name,
             "files_changed": len(files_changed),
-            "file_names": files_changed  # ← Add this
+            "file_names": files_changed,
+            "hash": c.hexsha
         })
 
     return commit_data

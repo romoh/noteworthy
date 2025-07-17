@@ -39,12 +39,18 @@ def generate_release_notes(
     print(f"📝 Found {len(commits)} commits")
 
     commit_lines = []
-    for c in commits:
+    for i, c in enumerate(commits):
         msg = c["message"].strip().split("\n")[0]
         if exclude_patterns and any(p in msg for p in exclude_patterns):
             continue
         file_list = ", ".join(c["file_names"])
-        commit_lines.append("- {msg} (files changed: {c['files_changed']}, files: [{file_list}], author: {c['author']})")
+        commit_hash = c["hash"]
+        if i < 5:
+            # Add hyperlink for the first 5 (major) commits
+            link = f"[{commit_hash[:8]}]({repo_url}/commit/{commit_hash})"
+            commit_lines.append(f"- {msg} {link} (files changed: {c['files_changed']}, files: [{file_list}], author: {c['author']})")
+        else:
+            commit_lines.append(f"- {msg} (files changed: {c['files_changed']}, files: [{file_list}], author: {c['author']})")
 
     style_text = None
     if style_sample:
