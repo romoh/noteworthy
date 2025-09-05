@@ -82,7 +82,7 @@ PYTHONPATH=src python -m noteworthy.main \
   --output-format markdown \
   --output-file output/release_notes.md \
   --from-tag v0.14.0 --to-tag v0.15.0 \
-  -- style-sample sample.md
+  --style-sample sample.md
 ```
 
 ## Tests
