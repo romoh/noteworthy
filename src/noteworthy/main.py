@@ -41,6 +41,9 @@ def main():
     print(f"From tag:       {args.from_tag}")
     print(f"To tag:         {args.to_tag}")
 
+    if args.style_sample:
+        print(f"Style sample:   {args.style_sample}")
+
     notes = generate_release_notes(
         repo_url=args.repo_url,
         output_format=args.output_format,
