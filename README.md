@@ -16,15 +16,15 @@
 
 ## Environment Variables
 
-| Variable                  | Description                                                      | Example/Default                |
-|---------------------------|------------------------------------------------------------------|--------------------------------|
-| `LLM_BACKEND`             | LLM backend to use: `azure` (default) or `openai`                | `azure`                        |
-| `AZURE_AUTH`              | Azure auth: `aad` (default, uses Entra ID) or `key` (API key)    | `aad`                          |
-| `AZURE_OPENAI_DEPLOYMENT` | Azure deployment name                                            | `noteworthy`                   |
-| `AZURE_OPENAI_ENDPOINT`   | Azure OpenAI endpoint                                            | `https://...azure.com/`        |
-| `AZURE_OPENAI_API_KEY`    | Azure OpenAI API key (if using `AZURE_AUTH=key`)                 |                                |
-| `AZURE_OPENAI_API_VERSION`| Azure OpenAI API version                                         | `2023-05-15`                   |
-| `OPENAI_API_KEY`          | OpenAI API key (if using `LLM_BACKEND=openai`)                   |                                |
+| Variable                   | Description                                                   | Example/Default         |
+| -------------------------- | ------------------------------------------------------------- | ----------------------- |
+| `LLM_BACKEND`              | LLM backend to use: `azure` (default) or `openai`             | `azure`                 |
+| `AZURE_AUTH`               | Azure auth: `aad` (default, uses Entra ID) or `key` (API key) | `aad`                   |
+| `AZURE_OPENAI_DEPLOYMENT`  | Azure deployment name                                         | `noteworthy`            |
+| `AZURE_OPENAI_ENDPOINT`    | Azure OpenAI endpoint                                         | `https://...azure.com/` |
+| `AZURE_OPENAI_API_KEY`     | Azure OpenAI API key (if using `AZURE_AUTH=key`)              |                         |
+| `AZURE_OPENAI_API_VERSION` | Azure OpenAI API version                                      | `2023-05-15`            |
+| `OPENAI_API_KEY`           | OpenAI API key (if using `LLM_BACKEND=openai`)                |                         |
 
 ## Usage
 
@@ -72,6 +72,17 @@ PYTHONPATH=src python -m noteworthy.main \
   --output-format markdown \
   --output-file output/release_notes.md \
   --from-tag v0.14.0 --to-tag v0.15.0
+```
+
+To customize the output, you can pass a style-sample
+
+```
+PYTHONPATH=src python -m noteworthy.main \
+  --repo-url https://github.com/microsoft/azurelinux \
+  --output-format markdown \
+  --output-file output/release_notes.md \
+  --from-tag v0.14.0 --to-tag v0.15.0 \
+  -- style-sample sample.md
 ```
 
 ## Tests
